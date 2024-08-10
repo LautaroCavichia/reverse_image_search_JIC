@@ -21,16 +21,33 @@ hnsw_index = create_or_load_index(features.shape[1], features, INDEX_FILE)
 
 @app.route('/search', methods=['POST'])
 def search_image():
+    # Salva l'immagine temporaneamente
     file = request.files['file']
     file.save(TEMP_IMAGE_PATH)
 
+    # Estrai le feature dall'immagine query
     query_features = extract_features(TEMP_IMAGE_PATH)
 
-    labels, distances = hnsw_index.knn_query(query_features, k=1)
+    # Normalizzazione delle feature
+    query_features = query_features / np.linalg.norm(query_features)
 
-    matched_image_path = image_paths[labels[0][0]]
+    # Esegui la ricerca nell'indice con k=5 per avere più opzioni
+    labels, distances = hnsw_index.knn_query(query_features, k=5)
 
-    return jsonify({"matched_image": matched_image_path})
+    # Seleziona l'immagine più simile con una distanza inferiore a una soglia
+    THRESHOLD = 0.5  # Questo valore può essere adattato in base al tuo dataset
+    best_match = None
+
+    for i, distance in enumerate(distances[0]):
+        if distance < THRESHOLD:
+            best_match = image_paths[labels[0][i]]
+            break
+
+    # Se nessun match è trovato sotto la soglia, restituisci il miglior risultato disponibile
+    if best_match is None:
+        best_match = image_paths[labels[0][0]]
+
+    return jsonify({"matched_image": best_match})
 
 if __name__ == '__main__':
     # Avvia Flask

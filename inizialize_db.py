@@ -12,6 +12,7 @@ image_paths = [os.path.join(IMAGE_DIR, fname) for fname in os.listdir(IMAGE_DIR)
 # Estrai le caratteristiche da tutte le immagini
 features = []
 for image_path in image_paths:
+    print(f"Estrazione caratteristiche da {image_path}")
     features.append(extract_features(image_path))
 
 features = np.array(features)
