@@ -6,10 +6,10 @@ IMAGE_DIR = "image_db"
 FEATURE_FILE = "features.npy"
 IMAGE_PATHS_FILE = "image_paths.npy"
 
-# Lista di tutti i percorsi delle immagini
-image_paths = [os.path.join(IMAGE_DIR, fname) for fname in os.listdir(IMAGE_DIR) if fname.endswith('.jpg') or fname.endswith('.png')]
 
-# Estrai le caratteristiche da tutte le immagini
+image_paths = [os.path.join(IMAGE_DIR, fname) for fname in os.listdir(IMAGE_DIR) if fname.endswith('.jpg') or fname.endswith('.png') or fname.endswith('.jpeg') or fname.endswith('.JPG') or fname.endswith('.PNG') or fname.endswith('.JPEG')]
+
+
 features = []
 for image_path in image_paths:
     print(f"Estrazione caratteristiche da {image_path}")
@@ -17,7 +17,6 @@ for image_path in image_paths:
 
 features = np.array(features)
 
-# Salva le caratteristiche e i percorsi delle immagini in file .npy
 np.save(FEATURE_FILE, features)
 np.save(IMAGE_PATHS_FILE, image_paths)
 
