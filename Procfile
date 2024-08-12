@@ -1,2 +1,1 @@
-web: python run_all.py
-```
+web: python run:_all.py

@@ -1,25 +1,14 @@
+from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 import numpy as np
 from search_utils import extract_features, create_or_load_index
+import dotenv
+import os
 
-
-def load_telegram_token(file_path):
-    try:
-        with open(file_path, "r") as f:
-            token = f.read().strip()
-            if not token:
-                raise ValueError("Il file è vuoto.")
-            return token
-    except FileNotFoundError:
-        raise FileNotFoundError(f"File '{file_path}' non trovato.")
-    except ValueError as ve:
-        raise ValueError(f"Errore nel contenuto del file: {ve}")
-    except Exception as e:
-        raise RuntimeError(f"Errore generico: {e}")
-
-
-TELEGRAM_TOKEN = load_telegram_token("TELEGRAM_TOKEN.txt")
+load_dotenv()
+# Carica le variabili d'ambiente da un file .env
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TEMP_IMAGE_PATH = "temp.jpg"
 
 features = np.load("features.npy")
