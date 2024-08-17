@@ -1,10 +1,11 @@
 import cv2
 import numpy as np
 import hnswlib
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.applications.vgg16 import preprocess_input
 from tensorflow.keras.models import Model
-import os
 import logging
 
 logging.basicConfig(level=logging.INFO)
