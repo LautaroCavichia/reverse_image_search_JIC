@@ -1,2 +1,5 @@
 [phases.setup]
 apt_pkgs = ["libgl1-mesa-glx"]
+[env]
+CUDA_VISIBLE_DEVICES = "-1"
+TF_ENABLE_ONEDNN_OPTS = "0"
