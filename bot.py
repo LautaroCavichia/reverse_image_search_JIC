@@ -3,7 +3,6 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 import numpy as np
 from search_utils import extract_features, create_or_load_index
-import dotenv
 import os
 
 load_dotenv()
@@ -53,7 +52,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-
 async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo_file = await update.message.photo[-1].get_file()
     await photo_file.download_to_drive(TEMP_IMAGE_PATH)
@@ -76,13 +74,11 @@ async def send_image_result(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     current_label = user_state["labels"][user_state["current_index"]]
     matched_image_path = image_paths[current_label]
 
-
     keyboard = [
         [InlineKeyboardButton("👍 Corretto", callback_data='correct')],
         [InlineKeyboardButton("👎 Non corretto", callback_data='incorrect')],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-
 
     with open(matched_image_path, 'rb') as image_file:
         await update.message.reply_photo(photo=image_file, reply_markup=reply_markup)
@@ -105,12 +101,11 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await send_image_result(query, context, user_id)
         else:
             await query.answer("Mi dispiace, non ci sono altre immagini disponibili, prova a ritagliare la foto. "
-                               "Oppure è possible che non faccia parte del nostro database.")
+                               "Oppure è possibile che non faccia parte del nostro database.")
             await query.edit_message_caption("Non ci sono altre immagini da mostrare. 😞")
 
 
 def main():
-
     application = Application.builder().token(TELEGRAM_TOKEN).build()
 
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, handle_new_user))

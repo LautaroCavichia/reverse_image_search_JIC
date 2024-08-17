@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 import hnswlib
 import os
@@ -31,13 +30,14 @@ preprocess = transforms.Compose([
 ])
 
 def load_and_preprocess_image(image_path):
-    image = Image.open(image_path).convert('RGB')
-    if image is None:
-        logger.error(f"Errore nel caricamento dell'immagine: {image_path}")
+    try:
+        image = Image.open(image_path).convert('RGB')
+        image = preprocess(image)
+        image = image.unsqueeze(0)  # Aggiungi una dimensione batch
+        return image
+    except Exception as e:
+        logger.error(f"Errore nel caricamento dell'immagine: {image_path}, {e}")
         raise ValueError(f"Impossibile caricare l'immagine: {image_path}")
-    image = preprocess(image)
-    image = image.unsqueeze(0)  # Aggiungi una dimensione batch
-    return image
 
 def extract_features(image_path):
     image = load_and_preprocess_image(image_path)
