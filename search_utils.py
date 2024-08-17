@@ -2,11 +2,16 @@ import cv2
 import numpy as np
 import hnswlib
 import os
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.applications.vgg16 import preprocess_input
 from tensorflow.keras.models import Model
+import tensorflow as tf
 import logging
+
+tf.config.set_visible_devices([], 'GPU')
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
