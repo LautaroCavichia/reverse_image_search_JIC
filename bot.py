@@ -4,9 +4,10 @@ from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQu
 import numpy as np
 from search_utils import extract_features, create_or_load_index
 import os
+import json
 
 load_dotenv()
-# Carica le variabili d'ambiente da un file .env
+
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TEMP_IMAGE_PATH = "temp.jpg"
 
@@ -14,8 +15,25 @@ features = np.load("features.npy")
 image_paths = np.load("image_paths.npy")
 hnsw_index = create_or_load_index(features.shape[1], features, "image_index.bin")
 
-# Dizionario per memorizzare lo stato della ricerca degli utenti
+STATS_FILE_PATH = "stats.json"
+
+
+def load_stats():
+    if os.path.exists(STATS_FILE_PATH):
+        with open(STATS_FILE_PATH, 'r') as f:
+            return json.load(f)
+    return {"total_requests": 0, "users": {}, "correct": 0, "incorrect": 0}
+
+
+def save_stats(stats):
+    with open(STATS_FILE_PATH, 'w') as f:
+        json.dump(stats, f, indent=4)
+
+
+stats = load_stats()
+
 user_search_states = {}
+
 
 
 async def handle_new_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -65,6 +83,12 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "distances": distances[0],
         "current_index": 0
     }
+    user_id = str(update.message.from_user.id)
+    stats["total_requests"] += 1
+    if user_id not in stats["users"]:
+        stats["users"][user_id] = {"requests": 0, "correct": 0, "incorrect": 0}
+    stats["users"][user_id]["requests"] += 1
+    save_stats(stats)
 
     await send_image_result(update, context, user_id)
 
@@ -90,19 +114,37 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_state = user_search_states[user_id]
 
     if query.data == 'correct':
+        stats["correct"] += 1
+        stats["users"][user_id]["correct"] += 1
+        save_stats(stats)
         await query.answer("Grazie per il feedback!")
         await query.edit_message_caption("Sono felice che tu abbia trovato l'immagine giusta! 😊")
 
     elif query.data == 'incorrect':
+        stats["incorrect"] += 1
+        stats["users"][user_id]["incorrect"] += 1
+        save_stats(stats)
         user_state["current_index"] += 1
 
         if user_state["current_index"] < len(user_state["labels"]):
             await query.answer("Provo un'altra immagine...")
             await send_image_result(query, context, user_id)
         else:
-            await query.answer("Mi dispiace, non ci sono altre immagini disponibili, prova a ritagliare la foto. "
-                               "Oppure è possibile che non faccia parte del nostro database.")
-            await query.edit_message_caption("Non ci sono altre immagini da mostrare. 😞")
+            await query.edit_message_caption("Mi dispiace, non ci sono altre immagini disponibili, prova a ritagliare "
+                                             "la foto. Oppure è possibile che non faccia parte del nostro database.")
+            await query.answer("Non ci sono altre immagini da mostrare. 😞")
+
+
+async def show_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    total_users = len(stats["users"])
+    response_message = (
+        f"Statistiche del bot:\n"
+        f"Totale richieste: {stats['total_requests']}\n"
+        f"Totale utenti: {total_users}\n"
+        f"Immagini corrette: {stats['correct']}\n"
+        f"Immagini sbagliate: {stats['incorrect']}\n"
+    )
+    await update.message.reply_text(response_message)
 
 
 def main():
@@ -110,6 +152,7 @@ def main():
 
     application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, handle_new_user))
     application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("stats", show_stats))
     application.add_handler(MessageHandler(filters.PHOTO, handle_image))
     application.add_handler(CallbackQueryHandler(button_callback))
 
