@@ -22,12 +22,12 @@ def load_stats():
     if os.path.exists(STATS_FILE_PATH):
         with open(STATS_FILE_PATH, 'r') as f:
             return json.load(f)
-    return {"total_requests": 0, "users": {}, "correct": 0, "incorrect": 0}
+    return {"total_requests": 0, "correct": 0, "incorrect": 0}
 
 
 def save_stats(stats):
     with open(STATS_FILE_PATH, 'w') as f:
-        json.dump(stats, f, indent=4)
+        json.dump(stats, f, indent=3)
 
 
 stats = load_stats()
@@ -83,11 +83,8 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "distances": distances[0],
         "current_index": 0
     }
-    user_id = str(update.message.from_user.id)
+
     stats["total_requests"] += 1
-    if user_id not in stats["users"]:
-        stats["users"][user_id] = {"requests": 0, "correct": 0, "incorrect": 0}
-    stats["users"][user_id]["requests"] += 1
     save_stats(stats)
 
     await send_image_result(update, context, user_id)
@@ -115,14 +112,12 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if query.data == 'correct':
         stats["correct"] += 1
-        stats["users"][user_id]["correct"] += 1
         save_stats(stats)
         await query.answer("Grazie per il feedback!")
         await query.edit_message_caption("Sono felice che tu abbia trovato l'immagine giusta! 😊")
 
     elif query.data == 'incorrect':
         stats["incorrect"] += 1
-        stats["users"][user_id]["incorrect"] += 1
         save_stats(stats)
         user_state["current_index"] += 1
 
@@ -136,11 +131,9 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def show_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    total_users = len(stats["users"])
     response_message = (
         f"Statistiche del bot:\n"
         f"Totale richieste: {stats['total_requests']}\n"
-        f"Totale utenti: {total_users}\n"
         f"Immagini corrette: {stats['correct']}\n"
         f"Immagini sbagliate: {stats['incorrect']}\n"
     )
