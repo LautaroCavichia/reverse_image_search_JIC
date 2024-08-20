@@ -121,9 +121,6 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         save_stats(stats)
         user_state["current_index"] += 1
 
-    elif query.data == 'correct':
-        await query.edit_message_caption("Grazie per aver confermato l'immagine!")
-
         if user_state["current_index"] < len(user_state["labels"]):
             await query.answer("Provo un'altra immagine...")
             await send_image_result(query, context, user_id)
@@ -131,6 +128,9 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_caption("Mi dispiace, non ci sono altre immagini disponibili, prova a ritagliare "
                                              "la foto. Oppure è possibile che non faccia parte del nostro database.")
             await query.answer("Non ci sono altre immagini da mostrare. 😞")
+
+    elif query.data == 'correct':
+        await query.answer("Grazie per aver confermato l'immagine! 😊")
 
 
 async def show_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
