@@ -1,33 +1,35 @@
 from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
-import numpy as np
+from numpy import load as np_load
 from search_utils import extract_features, create_or_load_index
-import os
-import json
+from os import path as os_path
+from os import environ as os_environ
+from json import dump as json_dump
+from json import load as json_load
 
 load_dotenv()
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_TOKEN = os_environ.get("TELEGRAM_TOKEN")
 TEMP_IMAGE_PATH = "temp.jpg"
 
-features = np.load("features.npy")
-image_paths = np.load("image_paths.npy")
+features = np_load("features.npy")
+image_paths = np_load("image_paths.npy")
 hnsw_index = create_or_load_index(features.shape[1], features, "image_index.bin")
 
 STATS_FILE_PATH = "stats.json"
 
 
 def load_stats():
-    if os.path.exists(STATS_FILE_PATH):
+    if os_path.exists(STATS_FILE_PATH):
         with open(STATS_FILE_PATH, 'r') as f:
-            return json.load(f)
-    return {"total_requests": 0, "correct": 0, "incorrect": 0}
+            return json_load(f)
+    return {"total_requests": 0, "incorrect": 0}
 
 
 def save_stats(stats):
     with open(STATS_FILE_PATH, 'w') as f:
-        json.dump(stats, f, indent=3)
+        json_dump(stats, f, indent=2)
 
 
 stats = load_stats()
@@ -35,17 +37,17 @@ stats = load_stats()
 user_search_states = {}
 
 
-
 async def handle_new_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for new_user in update.message.new_chat_members:
         welcome_message = (
-            f"Benvenuto {new_user.full_name} nella chat! 😊\n\n"
+            f"Benvenuto {new_user.full_name} a CaseLink!\n\n"
             "Ecco come funziona:\n"
             "1. Inviami una foto della cover con la grafica che vuoi (ritagliata a solo la cover) e cercherò quella più simile nel nostro database.\n"
             "2. Dopo aver inviato un'immagine, riceverai un suggerimento con un'immagine simile.\n"
-            "3. Puoi indicare se l'immagine è corretta o meno utilizzando i pulsanti 👍 o 👎.\n\n"
+            "3. Puoi indicare se l'immagine è corretta o meno e potrai chiedere una nuova immagine.\n\n"
         )
-        welcome_image_path = "welcome_image.jpg"
+        welcome_image_path = "Welcome.jpg"
+
 
         await context.bot.send_photo(
             chat_id=update.effective_chat.id,
@@ -56,16 +58,19 @@ async def handle_new_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     welcome_message = (
-        "Ecco come funziona:\n"
-        "1. Inviami una foto della cover con la grafica che vuoi (ritagliata a solo la cover) e cercherò quella più simile nel nostro database.\n"
-        "2. Dopo aver inviato un'immagine, riceverai un suggerimento con un'immagine simile.\n"
-        "3. Puoi indicare se l'immagine è corretta o meno utilizzando i pulsanti 👍 o 👎.\n\n"
+        "Inviami una foto della cover con la grafica che vuoi (ritagliata) e cercherò la grafica originale nel nostro database.\n"
+        "Se l'immagine non è corretta, puoi chiedere una nuova immagine premendo il pulsante apposito.\n"
     )
-    welcome_image_path = "welcome_image.jpg"
+    welcome_image_path = "Welcome.jpg"
+    si_no_image_path = "si_no.jpg"
 
     await context.bot.send_photo(
         chat_id=update.effective_chat.id,
         photo=open(welcome_image_path, 'rb'),
+    )
+    await context.bot.send_photo(
+        chat_id=update.effective_chat.id,
+        photo=open(si_no_image_path, 'rb'),
         caption=welcome_message
     )
 
@@ -96,8 +101,8 @@ async def send_image_result(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     matched_image_path = image_paths[current_label]
 
     keyboard = [
-        [InlineKeyboardButton("👍 Corretto", callback_data='correct')],
-        [InlineKeyboardButton("👎 Non corretto", callback_data='incorrect')],
+        [InlineKeyboardButton("👍 Corretta!", callback_data='correct')],
+        [InlineKeyboardButton("👎 Non corretta, mostrami un'altra", callback_data='incorrect')],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -110,16 +115,14 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = query.from_user.id
     user_state = user_search_states[user_id]
 
-    if query.data == 'correct':
-        stats["correct"] += 1
-        save_stats(stats)
-        await query.answer("Grazie per il feedback!")
-        await query.edit_message_caption("Sono felice che tu abbia trovato l'immagine giusta! 😊")
-
-    elif query.data == 'incorrect':
+    if query.data == 'incorrect':
         stats["incorrect"] += 1
+        stats["total_requests"] += 1
         save_stats(stats)
         user_state["current_index"] += 1
+
+    elif query.data == 'correct':
+        await query.edit_message_caption("Grazie per aver confermato l'immagine!")
 
         if user_state["current_index"] < len(user_state["labels"]):
             await query.answer("Provo un'altra immagine...")
@@ -134,8 +137,7 @@ async def show_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     response_message = (
         f"Statistiche del bot:\n"
         f"Totale richieste: {stats['total_requests']}\n"
-        f"Immagini corrette: {stats['correct']}\n"
-        f"Immagini sbagliate: {stats['incorrect']}\n"
+        f"Immagini non trovate: {stats['incorrect']}\n"
     )
     await update.message.reply_text(response_message)
 
