@@ -130,7 +130,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.answer("Non ci sono altre immagini da mostrare. 😞")
 
     elif query.data == 'correct':
-        await query.answer("Grazie per aver confermato l'immagine! 😊")
+        await query.edit_message_caption("Grazie per aver confermato l'immagine! 😊")
 
 
 async def show_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
