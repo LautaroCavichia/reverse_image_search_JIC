@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from pyexiv2 import ImageData
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 from numpy import load as np_load
@@ -73,14 +74,23 @@ def generate_iphone_template(phone_name, cover_image_path, width_px, height_px):
     filename = f"{phone_name}_template.png"
     canvas.save(filename, dpi=(11811, 11811))
 
-    # Aggiungi metadati con ExifTool tramite subprocess
+    # Percorso dell'eseguibile exiftool incluso nel progetto
+    exiftool_path = './exiftool'
+
+    # Aggiungi metadati usando exiftool
     metadata_command = (
-        f'exiftool -PixelsPerUnitX=11811 -PixelsPerUnitY=11811  -ResolutionUnit=meters -SRGBRendering=Perceptual '
+        f'{exiftool_path} -PixelsPerUnitX=11811 -PixelsPerUnitY=11811 '
+        f'-ResolutionUnit=meters -SRGBRendering=Perceptual '
         f'-Gamma=2.2 {filename}'
     )
-    subprocess.run(metadata_command, shell=True)
 
-    print(f"Template saved as {filename}")
+    try:
+        subprocess.run(metadata_command, shell=True, check=True)
+        print(f"Metadati aggiunti a {filename}")
+    except subprocess.CalledProcessError as e:
+        print(f"Errore durante l'aggiunta dei metadati: {e}")
+
+    print(f"Template salvato come {filename}")
     return filename
 
 
