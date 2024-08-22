@@ -1,6 +1,5 @@
 from dotenv import load_dotenv
-from pyexiv2 import ImageData
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
 from numpy import load as np_load
 from search_utils import extract_features, create_or_load_index
@@ -10,12 +9,12 @@ from os import remove as os_remove
 from json import dump as json_dump
 from json import load as json_load
 from PIL import Image, ImageDraw
-import subprocess
 import bot_utilis
+import subprocess
 
 load_dotenv()
 
-TELEGRAM_TOKEN = os_environ.get("TELEGRAM_TOKEN")
+TELEGRAM_TOKEN = os_environ.get("TELEGRAM_TOKEN2")
 TEMP_IMAGE_PATH = "temp.jpg"
 
 features = np_load("features.npy")
@@ -41,6 +40,8 @@ stats = load_stats()
 
 user_search_states = {}
 
+
+from PIL import Image, ImageDraw, PngImagePlugin
 
 def generate_iphone_template(phone_name, cover_image_path, width_px, height_px):
     # Dimensioni del piano di stampa
@@ -92,7 +93,6 @@ def generate_iphone_template(phone_name, cover_image_path, width_px, height_px):
 
     print(f"Template salvato come {filename}")
     return filename
-
 
 async def handle_new_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for new_user in update.message.new_chat_members:
@@ -251,8 +251,6 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 with open(template_path, 'rb') as template_file:
                     await query.message.reply_document(document=template_file, caption=f"Ecco il template per {phone_name}!")
                     # Cancella il template temporaneo
-                    os_remove(template_path)
-                    template_path = template_path +"_original"
                     os_remove(template_path)
                 await query.answer()
 
