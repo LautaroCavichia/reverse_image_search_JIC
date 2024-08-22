@@ -1,5 +1,4 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-import png
 
 
 def create_series_menu():
@@ -60,4 +59,3 @@ def create_ip11_models_menu():
         [InlineKeyboardButton("Indietro", callback_data='back_to_series_menu')]
     ]
     return InlineKeyboardMarkup(keyboard)
-
