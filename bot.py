@@ -70,7 +70,6 @@ def generate_iphone_template(phone_name, cover_image_path, width_px, height_px):
     # Posiziona l'immagine della cover sul canvas
     canvas.paste(cover_image, (start_x, start_y), cover_image)
 
-    # Salva l'immagine finale
     filename = f"{phone_name}_template.png"
     canvas.save(filename, dpi=(11811, 11811))
 
