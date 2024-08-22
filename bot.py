@@ -14,7 +14,7 @@ import subprocess
 
 load_dotenv()
 
-TELEGRAM_TOKEN = os_environ.get("TELEGRAM_TOKEN2")
+TELEGRAM_TOKEN = os_environ.get("TELEGRAM_TOKEN")
 TEMP_IMAGE_PATH = "temp.jpg"
 
 features = np_load("features.npy")
