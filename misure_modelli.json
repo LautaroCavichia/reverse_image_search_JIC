@@ -1,0 +1,76 @@
+{
+    "modelli": {
+        "ip15": {
+            "width": 1794,
+            "height": 897
+        },
+        "ip15_plus": {
+            "width": 1972,
+            "height": 1003
+        },
+        "ip15_pro": {
+            "width": 1830,
+            "height": 909
+        },
+        "ip15_promax": {
+            "width": 1960,
+            "height": 968
+        },
+        "ip14": {
+            "width": 1818,
+            "height": 921
+        },
+        "ip14_plus": {
+            "width": 1984,
+            "height": 992
+        },
+        "ip14_pro": {
+            "width": 1818,
+            "height": 921
+        },
+        "ip14_promax": {
+            "width": 1960,
+            "height": 980
+        },
+        "ip13": {
+            "width": 1782,
+            "height": 897
+        },
+        "ip13_mini": {
+            "width": 1606,
+            "height": 803
+        },
+        "ip13_pro": {
+            "width": 1782,
+            "height": 897
+        },
+        "ip13_promax": {
+            "width": 1948,
+            "height": 980
+        },
+        "ip12": {
+            "width": 1806,
+            "height": 909
+        },
+        "ip12_mini": {
+            "width": 1628,
+            "height": 838
+        },
+        "ip12_promax": {
+            "width": 1936,
+            "height": 968
+        },
+        "ip11": {
+            "width": 1842,
+            "height": 968
+        },
+        "ip11_pro": {
+            "width": 1748,
+            "height": 909
+        },
+        "ip11_promax": {
+            "width": 1936,
+            "height": 1003
+        }
+    }
+}
